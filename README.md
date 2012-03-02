@@ -1,6 +1,7 @@
 # A Generic Skiplist in JavaScript 
 
 Operations:
+  
   * insert_before(node, value): 
     Inserts a new node before the node 'node', with value 'value'.
     Returns the inserted node.
