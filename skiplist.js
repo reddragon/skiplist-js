@@ -130,19 +130,49 @@ SkipList.prototype =  {
         return new_node;
     },
 
+    delete_node: function(n) {
+        // We love our sentinels!
+        if (n.lm === true || n.rm === true) {
+            return;
+        }
+
+        // Only nodes at the ground level can be deleted (for sanity sake)
+        if (n.d != null) {
+            return;
+        }
+
+        while (1) {
+            n.l.r = n.r;
+            n.r.l = n.l;
+            if (n.u != null) {
+                upper_node = n.u;
+                // TODO Verify if this deletes
+                delete n;
+                n = upper_node;
+            }
+            else {
+                delete n;
+                break;
+            }
+        }
+    },
+
     _print_by_level: function () {
         level = this.root;
         while (level) {
             //console.log(util.format('%d', level.lm));
             level_node = level.r;
             //console.log(util.format('%d', level_node.rm));
+            process.stdout.write('L ');
             while (level_node.rm != true) {
                 process.stdout.write(util.format('%d ', level_node.v));
                 level_node = level_node.r;
             }
-            process.stdout.write("\n");
+            process.stdout.write('R');
+            process.stdout.write('\n');
             level = level.d;
         }
+        process.stdout.write('\n');
     }
 };
 
@@ -154,4 +184,5 @@ a = s.insert_before(s.rs, 5);
 b = s.insert_before(a, 3);
 c = s.insert_before(a, 4);
 s._print_by_level();
-
+s.delete_node(b);
+s._print_by_level();
