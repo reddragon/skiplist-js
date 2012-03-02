@@ -142,6 +142,7 @@ SkipList.prototype =  {
         }
 
         while (1) {
+            // Have we met Ted? :P
             n.l.r = n.r;
             n.r.l = n.l;
             if (n.u != null) {
