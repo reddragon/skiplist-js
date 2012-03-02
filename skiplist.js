@@ -32,9 +32,6 @@ function SkipList(coinflipper) {
 }
 
 SkipList.prototype =  {
-    MOVE_RIGHT: 1,
-    MOVE_DOWN: 2,
-    FOUND: 3,
     _promote_sentinels: function () {
         new_ls = new SkipListNode(null);
         new_rs = new SkipListNode(null);
@@ -58,6 +55,24 @@ SkipList.prototype =  {
         // Set the new root
         this.root = this.ls;
     },
+    
+    _demote_sentinels: function () {
+        if (this.ls.r !== this.rs || this.ls.d === null) {
+            throw new Error('Sentinels can\'t be demoted any further');
+        }
+
+        new_ls = this.ls.d;
+        new_rs = this.rs.d;
+        new_ls.u = null;
+        new_rs.u = null;
+        
+        // Update the sentinels
+        this.ls = new_ls;
+        this.rs = new_rs;
+        
+        // Set the new root
+        this.root = this.ls;
+    },
 
     insert_before: function (before, value) {
         // Are we messing with the left sentinel?
@@ -65,7 +80,7 @@ SkipList.prototype =  {
             throw new Error('Cannot insert before the left sentinel.'); 
         }
         
-        //console.log(util.format('Inserting value %d', value));
+        console.log(util.format('Inserting value %d', value));
 
         // Get the neighbors
         l = before.l;
@@ -83,7 +98,7 @@ SkipList.prototype =  {
         old_node = n;
         
         while (this.coinflipper()) {
-            // console.log('Heads');
+             console.log('Heads');
                         
             // Move left till you have an up pointer
             while (l.u === null && !l.lm) {
@@ -159,10 +174,56 @@ SkipList.prototype =  {
         }
     },
 
-    find: function (finder, value) {
+    find: function (less_than, value) {
         // TODO Finish this
-        start = this.root;
+        
+        // We need to demote the sentinels, they are just linking to each other
+        while (this.ls.r == this.rs && this.ls.d) {
+            // console.log('_demote_sentinels() called');
+            this._demote_sentinels();
+        }
+        
+        // If we have an empty list
+        if (this.ls.r === this.rs) {
+            return null;
+        }
+        
+        n = this.root;
+        //console.log(util.format('Right is null?: %d', n.r === null));  
+        while (1) {
+            test_node = n.r;
+            console.log(util.format('Test Node: %d', test_node.v));
 
+            if (less_than(test_node, value)) {
+                // Sentinel ahead
+                if  (test_node.r.rm) {
+                    // We cannot go down
+                    //console.log(util.format('Found a sentinel here, down: %d %d', test_node.d === null, test_node.d.v));
+                    if (test_node.d === null) {
+                        return test_node;
+                    }
+                    // Because we move to the right, when we begin this loop, 
+                    // and we want to be at exactly below our current position when we resume
+                    n = test_node.d.l;
+                }
+                else {
+                    n = test_node;
+                }
+            }
+            else {
+                // At the ground level
+                if (n.d == null) {
+                    // We cannot go down, test_node is either the desired node, 
+                    // or its successor, or if the value is greater than the 
+                    // value of the last node, then we return the last element
+                    return test_node;
+                }
+                else { 
+                    n = n.d;
+                }
+            }
+
+        }
     },
 
     _print_by_level: function () {
@@ -184,10 +245,9 @@ SkipList.prototype =  {
     }
 };
 
-function sorted_list_finder(node, value) {
-    if (node.v == value) {
-        
-    }
+
+function less_than (n, value) {
+    return ( (n.v < value) ? true : false );
 }
 
 
@@ -198,6 +258,17 @@ s = new SkipList();
 a = s.insert_before(s.rs, 5);
 b = s.insert_before(a, 3);
 c = s.insert_before(a, 4);
+d = s.insert_before(a.r, 9);
+e = s.insert_before(d.r, 11);
+f = s.insert_before(e.r, 12);
 s._print_by_level();
 s.delete_node(b);
+s._print_by_level();
+n = s.find(less_than, 4);
+console.log('\n');
+o = s.find(less_than, 7);
+console.log('\n');
+p = s.find(less_than, 13);
+//m = s.find(less_than, 11);
+//console.log(util.format('%d', n.v));
 s._print_by_level();
