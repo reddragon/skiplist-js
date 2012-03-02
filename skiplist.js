@@ -1,5 +1,25 @@
 util = require('util');
 
+function sorted_list_finder_function(node, value) {
+    if (node.v === value) {
+        if (node.d === null) {
+            return "Found";
+        }
+        return "Down";
+    }
+
+    if (node.v > value) {
+       return "Down"; 
+    }
+
+    if (node.v < value) {
+        if(node.r === null || node.r.rm === true || node.r.v > value) {
+            return "Down";
+        }
+        return "Right";
+    }
+}
+
 function SkipListNode(value) {
     // Setting the value and initializing the direction pointers
     this.v = value;
@@ -137,7 +157,7 @@ SkipList.prototype =  {
         }
 
         // Only nodes at the ground level can be deleted (for sanity sake)
-        if (n.d != null) {
+        if (n.d !== null) {
             return;
         }
 
@@ -145,10 +165,9 @@ SkipList.prototype =  {
             // Have we met Ted? :P
             n.l.r = n.r;
             n.r.l = n.l;
-            if (n.u != null) {
+            if (n.u !== null) {
                 upper_node = n.u;
-                // TODO Verify if this deletes
-                delete n;
+                // TODO Verify if GC is needed.
                 n = upper_node;
             }
             else {
@@ -158,6 +177,9 @@ SkipList.prototype =  {
         }
     },
 
+    find: function () {
+    },
+
     _print_by_level: function () {
         level = this.root;
         while (level) {
@@ -165,7 +187,7 @@ SkipList.prototype =  {
             level_node = level.r;
             //console.log(util.format('%d', level_node.rm));
             process.stdout.write('L ');
-            while (level_node.rm != true) {
+            while (level_node.rm !== true) {
                 process.stdout.write(util.format('%d ', level_node.v));
                 level_node = level_node.r;
             }
