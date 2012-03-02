@@ -29,12 +29,12 @@ function SkipList(coinflipper) {
 
     // For those who are conscious about their PRNGs! :D
     this.coinflipper = coinflipper || function () { return Math.round(Math.random()); };
-
-    // The max height we have TODO Check if this is needed
-    this.h = 0;
 }
 
 SkipList.prototype =  {
+    MOVE_RIGHT: 1,
+    MOVE_DOWN: 2,
+    FOUND: 3,
     _promote_sentinels: function () {
         new_ls = new SkipListNode(null);
         new_rs = new SkipListNode(null);
@@ -57,9 +57,6 @@ SkipList.prototype =  {
         
         // Set the new root
         this.root = this.ls;
-
-        // Increase the total height
-        this.h = this.h + 1;
     },
 
     insert_before: function (before, value) {
@@ -67,6 +64,8 @@ SkipList.prototype =  {
         if (before.lm) {
             throw new Error('Cannot insert before the left sentinel.'); 
         }
+        
+        //console.log(util.format('Inserting value %d', value));
 
         // Get the neighbors
         l = before.l;
@@ -81,25 +80,26 @@ SkipList.prototype =  {
         r.l = n;
         n.l = l;
         n.r = r;
-
-        current_height = 0;
         old_node = n;
         
         while (this.coinflipper()) {
-            //console.log("Heads");
+            // console.log('Heads');
                         
-            current_height = current_height + 1;
-            if (current_height > this.h) {
-                //console.log("Height increased");
-                this._promote_sentinels();
-                //console.log(util.format('%d', this.h));
-            }
-            
             // Move left till you have an up pointer
-            while (l.u === null) {
+            while (l.u === null && !l.lm) {
+                if (l.lm) 
+                    console.log('Dangerous things gonna happen');
                 l = l.l;
                 // TODO Call left traversal hook function
             }
+
+            // Our left is a sentinel, and no one lives upstairs.
+            if (l.lm === true && l == this.root) {
+                // console.log('Height increased');
+                this._promote_sentinels();
+                //console.log(util.format('%d', this.h));
+            }
+
             // Now actually move up
             l = l.u;
             
@@ -136,6 +136,8 @@ SkipList.prototype =  {
         if (n.lm === true || n.rm === true) {
             throw new Error('Cannot delete sentinels');
         }
+        
+        // console.log(util.format('Deleting node %d', n.v));
 
         // Only nodes at the ground level can be deleted (for sanity sake)
         if (n.d !== null) {
@@ -157,8 +159,10 @@ SkipList.prototype =  {
         }
     },
 
-    find: function () {
+    find: function (finder, value) {
         // TODO Finish this
+        start = this.root;
+
     },
 
     _print_by_level: function () {
@@ -180,23 +184,9 @@ SkipList.prototype =  {
     }
 };
 
-function sorted_list_finder_function(node, value) {
-    if (node.v === value) {
-        if (node.d === null) {
-            return "Found";
-        }
-        return "Down";
-    }
-
-    if (node.v > value) {
-       return "Down"; 
-    }
-
-    if (node.v < value) {
-        if(node.r === null || node.r.rm === true || node.r.v > value) {
-            return "Down";
-        }
-        return "Right";
+function sorted_list_finder(node, value) {
+    if (node.v == value) {
+        
     }
 }
 
