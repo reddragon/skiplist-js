@@ -23,6 +23,10 @@ function SkipList(coinflipper) {
 
     // Is this the right sentinel?
     this.rs.rm = true;
+
+    // Create the first and last pointers
+    this.first = this.ls;
+    this.last = this.rs;
     
     // Setting the top-left pointer
     this.root = this.ls;
@@ -33,8 +37,8 @@ function SkipList(coinflipper) {
 
 SkipList.prototype =  {
     _promote_sentinels: function () {
-        new_ls = new SkipListNode(null);
-        new_rs = new SkipListNode(null);
+        var new_ls = new SkipListNode(null);
+        var new_rs = new SkipListNode(null);
 
         // They are sentinels
         new_ls.lm = true;
@@ -61,8 +65,8 @@ SkipList.prototype =  {
             throw new Error('Sentinels can\'t be demoted any further');
         }
 
-        new_ls = this.ls.d;
-        new_rs = this.rs.d;
+        var new_ls = this.ls.d;
+        var new_rs = this.rs.d;
         new_ls.u = null;
         new_rs.u = null;
         
@@ -83,19 +87,19 @@ SkipList.prototype =  {
         console.log(util.format('Inserting value %d', value));
 
         // Get the neighbors
-        l = before.l;
-        r = before;
+        var l = before.l;
+        var r = before;
         
         // Create a new node
-        new_node = new SkipListNode(value);
-        n = new_node;
+        var new_node = new SkipListNode(value);
+        var n = new_node;
 
         // Set the pointers of its left and right neighbors
         l.r = n;
         r.l = n;
         n.l = l;
         n.r = r;
-        old_node = n;
+        var old_node = n;
         
         while (this.coinflipper()) {
              console.log('Heads');
@@ -164,11 +168,10 @@ SkipList.prototype =  {
             n.l.r = n.r;
             n.r.l = n.l;
             if (n.u !== null) {
-                upper_node = n.u;
+                var upper_node = n.u;
                 n = upper_node;
             }
             else {
-                delete n;
                 break;
             }
         }
@@ -188,10 +191,10 @@ SkipList.prototype =  {
             return null;
         }
         
-        n = this.root;
+        var n = this.root;
         //console.log(util.format('Right is null?: %d', n.r === null));  
         while (1) {
-            test_node = n.r;
+            var test_node = n.r;
             console.log(util.format('Test Node: %d', test_node.v));
 
             if (less_than(test_node, value)) {
@@ -200,7 +203,8 @@ SkipList.prototype =  {
                     // We cannot go down
                     //console.log(util.format('Found a sentinel here, down: %d %d', test_node.d === null, test_node.d.v));
                     if (test_node.d === null) {
-                        return test_node;
+                        console.log('Returning right sentinel');
+                        return this.last;
                     }
                     // Because we move to the right, when we begin this loop, 
                     // and we want to be at exactly below our current position when we resume
@@ -227,10 +231,10 @@ SkipList.prototype =  {
     },
 
     _print_by_level: function () {
-        level = this.root;
+        var level = this.root;
         while (level) {
             //console.log(util.format('%d', level.lm));
-            level_node = level.r;
+            var level_node = level.r;
             //console.log(util.format('%d', level_node.rm));
             process.stdout.write('L ');
             while (level_node.rm !== true) {
@@ -255,12 +259,12 @@ exports.SkipListNode = SkipListNode;
 exports.SkipList = SkipList;
 
 s = new SkipList();
-a = s.insert_before(s.rs, 5);
+a = s.insert_before(s.last, 5);
 b = s.insert_before(a, 3);
 c = s.insert_before(a, 4);
-d = s.insert_before(a.r, 9);
-e = s.insert_before(d.r, 11);
-f = s.insert_before(e.r, 12);
+d = s.insert_before(s.last, 9);
+e = s.insert_before(s.last, 11);
+f = s.insert_before(s.last, 12);
 s._print_by_level();
 s.delete_node(b);
 s._print_by_level();
