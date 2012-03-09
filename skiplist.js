@@ -121,6 +121,7 @@ SkipList.prototype =  {
 
             // Now actually move up
             l = l.u;
+            // TODO Call left-move up hook function
             
             // Move right till you have an up pointer
             while (r.u === null) {
@@ -129,6 +130,7 @@ SkipList.prototype =  {
             }
             // Now actually move up
             r = r.u;
+            // TODO Call right-move up hook function
             
             n = new SkipListNode(value);
             
@@ -238,7 +240,9 @@ SkipList.prototype =  {
             //console.log(util.format('%d', level_node.rm));
             process.stdout.write('L ');
             while (level_node.rm !== true) {
-                process.stdout.write(util.format('%d ', level_node.v));
+                // process.stdout.write(util.format('%d ', level_node.v));
+                if (level_node.v.print())
+                    level_node.v.print();
                 level_node = level_node.r;
             }
             process.stdout.write('R');
@@ -250,14 +254,34 @@ SkipList.prototype =  {
 };
 
 
+// Some basic test code. TODO Create tests.js
+
 function less_than (n, value) {
     return ( (n.v < value) ? true : false );
 }
 
 
+function IntegerNode (v) {
+    this.value = v;
+}
+
+IntegerNode.prototype = {
+    print: function () {
+        process.stdout.write(util.format('%d', this.value));
+    }
+}
+
+
+
 exports.SkipListNode = SkipListNode;
 exports.SkipList = SkipList;
 
+var five = new IntegerNode(5);
+var three = new IntegerNode(3);
+var four = new IntegerNode(4);
+var nine = new IntegerNode(9);
+var eleven = new IntegerNode(11);
+var 
 s = new SkipList();
 a = s.insert_before(s.last, 5);
 b = s.insert_before(a, 3);
