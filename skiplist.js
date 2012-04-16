@@ -331,26 +331,4 @@ n.v.print();
 n = s.lower_bound(new IntegerNode(1));
 n.v.print();
 */
-/*
-s = new SkipList();
-a = s.insert_before(s.last, 5);
-b = s.insert_before(a, 3);
-c = s.insert_before(a, 4);
-d = s.insert_before(s.last, 9);
-e = s.insert_before(s.last, 11);
-f = s.insert_before(s.last, 12);
-s._print_by_level();
-s.delete_node(b);
-s._print_by_level();
-n = s.find(less_than, 4);
-console.log('\n');
-o = s.find(less_than, 7);
-console.log('\n');
-p = s.find(less_than, 13);
-console.log('\n');
-q = s.find(less_than, 10);
-console.log('\n');
-//m = s.find(less_than, 11);
-//console.log(util.format('%d', n.v));
-s._print_by_level(); 
-*/
+
