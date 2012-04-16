@@ -204,13 +204,13 @@ SkipList.prototype =  {
             var test_node = n.r;
 
             // If we haven't defined the less_than function for the test_node, we can't move ahead.
-            if (!test_node.v.less_than)
+            if (!test_node.v.leq)
                 return null;
             
             if (test_node.v.value_str)
-                console.log(util.format('Test Node: %s, value: %d, less_than: %d', test_node.v.value_str(), t.value, test_node.v.less_than(t)));
+                console.log(util.format('Test Node: %s, value: %d, leq: %d', test_node.v.value_str(), t.value, test_node.v.leq(t)));
 
-            if (test_node.v.less_than(t)) {
+            if (test_node.v.leq(t)) {
                 //console.log('Yes\n');
                 // Sentinel ahead
                 if  (test_node.r.rm) {
@@ -218,7 +218,7 @@ SkipList.prototype =  {
                     //console.log(util.format('Found a sentinel here, down: %d %d', test_node.d === null, test_node.d.v));
                     if (test_node.d === null) {
                         console.log('Returning right sentinel');
-                        return this.last;
+                        return test_node;
                     }
                     // Because we move to the right, when we begin this loop, 
                     // and we want to be at exactly below our current position when we resume
@@ -289,8 +289,9 @@ IntegerNode.prototype = {
     print: function() {
         process.stdout.write(util.format('%d\n', this.value));
     },
-    less_than: function(t) {
-        return ((this.value < t.value) ? true : false );
+    // Less than or equal to
+    leq: function(t) {
+        return ((this.value <= t.value) ? true : false );
     }
 }
 
@@ -319,7 +320,17 @@ n = s.lower_bound(eleven);
 n.v.print();
 n = s.lower_bound(new IntegerNode(10));
 n.v.print();
-
+n = s.lower_bound(new IntegerNode(12));
+n.v.print();
+n = s.lower_bound(new IntegerNode(13));
+n.v.print();
+/*
+// TODO Gracefully handle this case, when the number
+// searched for, is smaller than the smallest number
+// in the list
+n = s.lower_bound(new IntegerNode(1));
+n.v.print();
+*/
 /*
 s = new SkipList();
 a = s.insert_before(s.last, 5);
