@@ -84,7 +84,10 @@ SkipList.prototype =  {
             throw new Error('Cannot insert before the left sentinel.'); 
         }
         
-        console.log(util.format('Inserting value %d', value));
+        if (value.value_str) {
+            process.stdout.write(util.format('Inserting value: %s\n', value.value_str()));
+        }
+        //console.log(util.format('Inserting value %d', value));
 
         // Get the neighbors
         var l = before.l;
@@ -234,18 +237,21 @@ SkipList.prototype =  {
 
     _print_by_level: function () {
         var level = this.root;
+        // If you haven't defined the value_str() function, we can't help
+        //if (!level.r.v.value_str)
+        //    return;
+
         while (level) {
             //console.log(util.format('%d', level.lm));
             var level_node = level.r;
             //console.log(util.format('%d', level_node.rm));
-            process.stdout.write('L ');
+            process.stdout.write('L');
             while (level_node.rm !== true) {
                 // process.stdout.write(util.format('%d ', level_node.v));
-                if (level_node.v.print())
-                    level_node.v.print();
+                process.stdout.write(util.format(' %s', level_node.v.value_str()));
                 level_node = level_node.r;
             }
-            process.stdout.write('R');
+            process.stdout.write(' R');
             process.stdout.write('\n');
             level = level.d;
         }
@@ -266,8 +272,9 @@ function IntegerNode (v) {
 }
 
 IntegerNode.prototype = {
-    print: function () {
-        process.stdout.write(util.format('%d', this.value));
+    value_str: function () {
+        // Returns a formatting string containing the value
+        return util.format('%d', this.value);
     }
 }
 
@@ -281,7 +288,16 @@ var three = new IntegerNode(3);
 var four = new IntegerNode(4);
 var nine = new IntegerNode(9);
 var eleven = new IntegerNode(11);
-var 
+var twelve = new IntegerNode(12);
+s = new SkipList()
+a = s.insert_before(s.last, five);
+b = s.insert_before(a, three);
+c = s.insert_before(a, four);
+d = s.insert_before(s.last, nine);
+e = s.insert_before(s.last, eleven);
+f = s.insert_before(s.last, twelve);
+s._print_by_level();
+/*
 s = new SkipList();
 a = s.insert_before(s.last, 5);
 b = s.insert_before(a, 3);
@@ -297,6 +313,10 @@ console.log('\n');
 o = s.find(less_than, 7);
 console.log('\n');
 p = s.find(less_than, 13);
+console.log('\n');
+q = s.find(less_than, 10);
+console.log('\n');
 //m = s.find(less_than, 11);
 //console.log(util.format('%d', n.v));
-s._print_by_level();
+s._print_by_level(); 
+*/
