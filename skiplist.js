@@ -270,11 +270,6 @@ SkipList.prototype =  {
 
 // Some basic test code. TODO Create tests.js
 
-function less_than (s, t) {
-    // console.log(util.format('%d %d %d\n', n.v.value, value.value, ( (n.v.value < value.value) ? true : false )));
-}
-
-
 function IntegerNode (v) {
     this.value = v;
 }
