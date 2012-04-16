@@ -182,7 +182,7 @@ SkipList.prototype =  {
         }
     },
 
-    find: function (less_than, value) {
+    lower_bound: function (t) {
         // TODO Finish this
         
         // We need to demote the sentinels, they are just linking to each other
@@ -198,11 +198,20 @@ SkipList.prototype =  {
         
         var n = this.root;
         //console.log(util.format('Right is null?: %d', n.r === null));  
+        var prev_test_node = n;
         while (1) {
+            prev_test_node = n;
             var test_node = n.r;
-            console.log(util.format('Test Node: %d', test_node.v));
 
-            if (less_than(test_node, value)) {
+            // If we haven't defined the less_than function for the test_node, we can't move ahead.
+            if (!test_node.v.less_than)
+                return null;
+            
+            if (test_node.v.value_str)
+                console.log(util.format('Test Node: %s, value: %d, less_than: %d', test_node.v.value_str(), t.value, test_node.v.less_than(t)));
+
+            if (test_node.v.less_than(t)) {
+                //console.log('Yes\n');
                 // Sentinel ahead
                 if  (test_node.r.rm) {
                     // We cannot go down
@@ -220,12 +229,13 @@ SkipList.prototype =  {
                 }
             }
             else {
+                //console.log('No\n');
                 // At the ground level
                 if (n.d == null) {
                     // We cannot go down, test_node is either the desired node, 
                     // or its successor, or if the value is greater than the 
                     // value of the last node, then we return the last element
-                    return test_node;
+                    return prev_test_node;
                 }
                 else { 
                     n = n.d;
@@ -262,8 +272,8 @@ SkipList.prototype =  {
 
 // Some basic test code. TODO Create tests.js
 
-function less_than (n, value) {
-    return ( (n.v < value) ? true : false );
+function less_than (s, t) {
+    // console.log(util.format('%d %d %d\n', n.v.value, value.value, ( (n.v.value < value.value) ? true : false )));
 }
 
 
@@ -275,6 +285,12 @@ IntegerNode.prototype = {
     value_str: function () {
         // Returns a formatting string containing the value
         return util.format('%d', this.value);
+    },
+    print: function() {
+        process.stdout.write(util.format('%d\n', this.value));
+    },
+    less_than: function(t) {
+        return ((this.value < t.value) ? true : false );
     }
 }
 
@@ -297,6 +313,13 @@ d = s.insert_before(s.last, nine);
 e = s.insert_before(s.last, eleven);
 f = s.insert_before(s.last, twelve);
 s._print_by_level();
+s.delete_node(b);
+s._print_by_level();
+n = s.lower_bound(eleven);
+n.v.print();
+n = s.lower_bound(new IntegerNode(10));
+n.v.print();
+
 /*
 s = new SkipList();
 a = s.insert_before(s.last, 5);
