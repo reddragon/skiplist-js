@@ -183,8 +183,6 @@ SkipList.prototype =  {
     },
 
     lower_bound: function (t) {
-        // TODO Finish this
-        
         // We need to demote the sentinels, they are just linking to each other
         while (this.ls.r == this.rs && this.ls.d) {
             // console.log('_demote_sentinels() called');
