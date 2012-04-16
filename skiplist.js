@@ -1,12 +1,14 @@
 util = require('util');
 
-function SkipListNode(value) {
+function SkipListNode(value, init_hook) {
     // Setting the value and initializing the direction pointers
     this.v = value;
     this.l = null;
     this.r = null;
     this.u = null;
     this.d = null;
+    if (init_hook)
+        init_hook(this);
 }
 
 function SkipList(coinflipper) {
@@ -103,6 +105,7 @@ SkipList.prototype =  {
         n.l = l;
         n.r = r;
         var old_node = n;
+        var l_acc = null, r_acc = null;
         
         while (this.coinflipper()) {
              console.log('Heads');
@@ -113,6 +116,8 @@ SkipList.prototype =  {
                     console.log('Dangerous things gonna happen');
                 l = l.l;
                 // TODO Call left traversal hook function
+                if (this.insert_move_left)
+                    l_acc = this.insert_move_left(l_acc);
             }
 
             // Our left is a sentinel, and no one lives upstairs.
@@ -125,17 +130,23 @@ SkipList.prototype =  {
             // Now actually move up
             l = l.u;
             // TODO Call left-move up hook function
+            if (this.insert_move_left_up)
+                l_acc = this.insert_move_left_up(l_acc);
             
             // Move right till you have an up pointer
             while (r.u === null) {
                 r = r.r;
                 // TODO Call right traversal hook function
+                if (this.insert_move_right)
+                    r_acc = this.insert_move_right(r_acc);
             }
             // Now actually move up
             r = r.u;
             // TODO Call right-move up hook function
+            if (this.insert_move_right_up)
+                r_acc = this.insert_move_right_up(r_acc);
             
-            n = new SkipListNode(value);
+            n = new SkipListNode(value, this.init_hook);
             
             // Setting up pointers with the neighbors
             l.r = n;
@@ -143,6 +154,8 @@ SkipList.prototype =  {
             n.l = l;
             n.r = r;
             // TODO Call update hook function
+            if (this.insert_update)
+                this.insert_update(n, l_acc, r_acc)
 
             // Chaining up with the old node
             old_node.u = n;
@@ -288,6 +301,33 @@ IntegerNode.prototype = {
     }
 }
 
+function insert_move_left (l_acc) {
+    // TODO Fill this up
+    return l_acc;
+}
+
+function insert_move_left_up (l_acc) {
+    // TODO Fill this up
+    return l_acc;
+}
+
+function insert_move_right (r_acc) {
+    // TODO Fill this up
+    return r_acc;
+}
+
+function insert_move_right_up (r_acc) {
+    // TODO Fill this up
+    return r_acc;
+}
+
+function insert_update(n, l_acc, r_acc) {
+    // TODO Fill this up
+}
+
+function init_hook(s) {
+    // TODO Fill this up
+}
 
 
 exports.SkipListNode = SkipListNode;
@@ -300,6 +340,12 @@ var nine = new IntegerNode(9);
 var eleven = new IntegerNode(11);
 var twelve = new IntegerNode(12);
 s = new SkipList()
+s.insert_move_left = insert_move_left;
+s.insert_move_left_up = insert_move_left_up;
+s.insert_move_right = insert_move_right;
+s.insert_move_right_up = insert_move_right_up;
+s.insert_update = insert_update;
+s.init_hook = init_hook;
 a = s.insert_before(s.last, five);
 b = s.insert_before(a, three);
 c = s.insert_before(a, four);
