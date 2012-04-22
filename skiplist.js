@@ -96,7 +96,7 @@ SkipList.prototype =  {
         var r = before;
         
         // Create a new node
-        var new_node = new SkipListNode(value);
+        var new_node = new SkipListNode(value, this.init_hook);
         var n = new_node;
 
         // Set the pointers of its left and right neighbors
@@ -105,19 +105,20 @@ SkipList.prototype =  {
         n.l = l;
         n.r = r;
         var old_node = n;
-        var l_acc = null, r_acc = null;
         
         while (this.coinflipper()) {
              console.log('Heads');
-                        
+            
+            // Accumulators for this level
+            var l_acc = null, r_acc = null;
+
             // Move left till you have an up pointer
             while (l.u === null && !l.lm) {
                 if (l.lm) 
                     console.log('Dangerous things gonna happen');
+                if (this.insert_move)
+                    l_acc = this.insert_move(l, l_acc);
                 l = l.l;
-                // TODO Call left traversal hook function
-                if (this.insert_move_left)
-                    l_acc = this.insert_move_left(l_acc);
             }
 
             // Our left is a sentinel, and no one lives upstairs.
@@ -129,22 +130,15 @@ SkipList.prototype =  {
 
             // Now actually move up
             l = l.u;
-            // TODO Call left-move up hook function
-            if (this.insert_move_left_up)
-                l_acc = this.insert_move_left_up(l_acc);
             
             // Move right till you have an up pointer
             while (r.u === null) {
+                if (this.insert_move)
+                    r_acc = this.insert_move(r, r_acc);
                 r = r.r;
-                // TODO Call right traversal hook function
-                if (this.insert_move_right)
-                    r_acc = this.insert_move_right(r_acc);
             }
             // Now actually move up
             r = r.u;
-            // TODO Call right-move up hook function
-            if (this.insert_move_right_up)
-                r_acc = this.insert_move_right_up(r_acc);
             
             n = new SkipListNode(value, this.init_hook);
             
@@ -153,17 +147,62 @@ SkipList.prototype =  {
             r.l = n;
             n.l = l;
             n.r = r;
-            // TODO Call update hook function
-            if (this.insert_update)
-                this.insert_update(n, l_acc, r_acc)
-
-            // Chaining up with the old node
+            
+	        // Chaining up with the old node
             old_node.u = n;
             n.d = old_node;
+	    
+            if (this.insert_update) {
+	    	    // Set the new values
+                this.insert_update(n, l_acc);
+            	this.insert_update(r, r_acc);
+	        }
 
             // For chaining up with the node at the next level
             old_node = n;
-        } 
+        }
+
+        if (this.insert_update && this.insert_move) {
+            this._print_by_level();
+            // This is to handle the case when we are
+            // at a level and the element won't be
+            // propagated up.
+            
+            // First go as much left as you can until
+            // you don't find an up pointer
+            var acc = null;
+            var t = n.l, next;
+
+            // Get the accumulator set up for the interval
+            // from the left most to the current node
+            while (!t.lm && !t.u) {
+                acc = this.insert_move(t, acc);
+                console.log('%d %d %d\n', t.v.value, acc.count, acc.min_v);
+                t = t.l;
+            }
+            
+            acc = this.insert_move(n, acc);
+            console.log('%d %d %d\n', n.v.value, acc.count, acc.min_v);
+            t = n;
+            // From the current node onwards, go till the top
+            while (t.r != this.rs) {
+                // Move right as much as you can
+                while (!t.u && !t.r.rm) {
+                    t = t.r;
+                    // console.log('%d\n', t.v.value);
+                    acc = this.insert_move(t, acc);
+                    console.log('%d %d %d\n', t.v.value, acc.count, acc.min_v);
+                }
+
+                if (t.u) {
+                    t = t.u;
+                    acc = this.insert_update(t, acc);    
+                }
+                // Reset the accumulator
+                acc = null;
+            }
+            
+        }
 
         return new_node;
     },
@@ -174,8 +213,6 @@ SkipList.prototype =  {
             throw new Error('Cannot delete sentinels');
         }
         
-        // console.log(util.format('Deleting node %d', n.v));
-
         // Only nodes at the ground level can be deleted (for sanity sake)
         if (n.d !== null) {
             throw new Error('Can only delete nodes at the ground level.');
@@ -269,8 +306,14 @@ SkipList.prototype =  {
             process.stdout.write('L');
             while (level_node.rm !== true) {
                 // process.stdout.write(util.format('%d ', level_node.v));
-                process.stdout.write(util.format(' %s', level_node.v.value_str()));
+                // process.stdout.write(util.format(' %s', level_node.v.value_str()));
+                
+                // TODO: This is temporary for testing
+                process.stdout.write(util.format(' (%s,%d,%d)', level_node.v.value_str(), level_node.count, level_node.min_v));
                 level_node = level_node.r;
+            }
+            if (level_node == this.rs) {
+                // process.stdout.write('Yes');
             }
             process.stdout.write(' R');
             process.stdout.write('\n');
@@ -301,32 +344,39 @@ IntegerNode.prototype = {
     }
 }
 
-function insert_move_left (l_acc) {
-    // TODO Fill this up
-    return l_acc;
+function IntegerAccumulator (n) {
+    this.count = 1;
+    this.min_v = n.v.value;
+    this.max_v = n.v.value;
 }
 
-function insert_move_left_up (l_acc) {
-    // TODO Fill this up
-    return l_acc;
+function insert_move (n, acc) {
+    // Return a valid accumulator if this is the first time
+    if (acc === null) {
+        return new IntegerAccumulator(n);
+    }
+    // Setting proper values 
+    acc.count = acc.count + n.count;
+    acc.max_v = acc.max_v > n.max_v ? acc.max_v : n.max_v;
+    acc.min_v = acc.min_v < n.min_v ? acc.min_v : n.min_v;
+    return acc;
 }
 
-function insert_move_right (r_acc) {
-    // TODO Fill this up
-    return r_acc;
-}
+function insert_update(n, acc) {
+    if (acc === null) {
+        return;
+    }
 
-function insert_move_right_up (r_acc) {
-    // TODO Fill this up
-    return r_acc;
-}
-
-function insert_update(n, l_acc, r_acc) {
-    // TODO Fill this up
+    // Set the correct values
+    n.count = acc.count;
+    n.max_v = acc.max_v;
+    n.min_v = acc.min_v;
 }
 
 function init_hook(s) {
-    // TODO Fill this up
+    s.count = 1;
+    s.min_v = s.v.value;
+    s.max_v = s.v.value;
 }
 
 
@@ -340,19 +390,18 @@ var nine = new IntegerNode(9);
 var eleven = new IntegerNode(11);
 var twelve = new IntegerNode(12);
 s = new SkipList()
-s.insert_move_left = insert_move_left;
-s.insert_move_left_up = insert_move_left_up;
-s.insert_move_right = insert_move_right;
-s.insert_move_right_up = insert_move_right_up;
+s.insert_move = insert_move;
 s.insert_update = insert_update;
 s.init_hook = init_hook;
 a = s.insert_before(s.last, five);
 b = s.insert_before(a, three);
+/*
 c = s.insert_before(a, four);
 d = s.insert_before(s.last, nine);
 e = s.insert_before(s.last, eleven);
-f = s.insert_before(s.last, twelve);
+f = s.insert_before(s.last, twelve); */
 s._print_by_level();
+/*
 s.delete_node(b);
 s._print_by_level();
 n = s.lower_bound(eleven);
@@ -362,7 +411,7 @@ n.v.print();
 n = s.lower_bound(new IntegerNode(12));
 n.v.print();
 n = s.lower_bound(new IntegerNode(13));
-n.v.print();
+n.v.print(); */
 /*
 // TODO Gracefully handle this case, when the number
 // searched for, is smaller than the smallest number
