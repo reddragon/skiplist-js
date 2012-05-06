@@ -5,21 +5,20 @@ Operations:
   * insert_before(node, value): 
     Inserts a new node before the node 'node', with value 'value'.
     Returns the inserted node.
-    O(log n)
+    O(log n) whp
   
   * insert_after(node, value):
     Similar to insert_before, but after the node 'node'.
-    O(log n)
+    O(log n) whp
 
-  * find(finder_function):
-    Returns the node to be found, using the supplied finder_function.
-    The finder_function, should, when passed a node, return 'R', 'D', 
-    or 'F', if it needs to move right, down, or the node was found
-    respectively.
-    O(log n)
+  * lower_bound(node):
+    Find the greatest node, which is less than or equal to the value of 'node'.
+    O(log n) whp
 
   * delete(node):
     Deletes the node 'node'
-    O(log n)
+    O(log n) whp
 
-
+Credits:
+  * [Dhruv Matani](http://github.com/dhruvbird) for the inspiration and help with
+    the project.
